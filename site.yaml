@@ -1,0 +1,85 @@
+---
+- name: Launch k8s master
+  hosts: localhost
+  pre_tasks:
+    - name: Set variables
+      set_fact:
+        name: "{{ lookup('env','NAME') | default('k8s', true) }}"
+        state: "{{ lookup('env','STATE') | default('present', true) }}"
+        node_count: "{{ lookup('env', 'NODE_COUNT') | default(3, true) }}"
+  roles:
+    - { role: openstack-security-groups, when: state == 'present' }
+    - openstack-master
+
+- name: Master preparation
+  hosts: master
+  pre_tasks:
+    - name: Set variables
+      set_fact:
+        name: "{{ lookup('env','NAME') | default('k8s', true) }}"
+        state: "{{ lookup('env','STATE') | default('present', true) }}"
+  tags:
+    - bootstrap
+  gather_facts: false
+  roles:
+    - common
+
+- name: Launch k8s nodes
+  hosts: localhost
+  roles:
+    - openstack-nodes
+    - openstack-security-groups # HACK: needs to be called after instance creation when state==absent
+
+- name: Nodes preparation
+  hosts: nodes
+  pre_tasks:
+    - name: Set variables
+      set_fact:
+        name: "{{ lookup('env','NAME') | default('k8s', true) }}"
+        state: "{{ lookup('env','STATE') | default('present', true) }}"
+  tags:
+    - bootstrap
+  gather_facts: false
+  roles:
+    - common
+
+- name: Install repo and packages
+  hosts: all
+  tags:
+    - bootstrap
+  become: true
+  roles:
+    - kubeadm
+
+- name: k8s master setup
+  hosts: master
+  tags:
+    - bootstrap
+  become: true
+  roles:
+    - kubeadm-master
+
+- name: k8s nodes setup
+  hosts: nodes
+  become: true
+  tags:
+    - bootstrap
+  roles:
+    - kubeadm-nodes
+
+- name: k8s addons
+  hosts: master
+  tags:
+    - bootstrap
+  roles:
+    - k8s-addons
+
+- name: Health check
+  hosts: master
+  roles:
+    - healthcheck
+
+- name: Local kubectl configuration
+  hosts: master
+  roles:
+    - kubectl
