@@ -52,10 +52,10 @@
   shell: kubectl completion bash > /etc/bash_completion.d/kubectl
   when: kubectl_bash_completion.stat.exists == False
 
-- name: Fetch CA cert from master node
-  fetch:
-    src: /etc/kubernetes/pki/ca.crt
-    dest: /tmp/
+# cf. Token-based discovery with CA pinning: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#discovering-what-cluster-ca-to-trust
+- name: Obtain CA cert hash
+  raw: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  register: master_node_ca_hash
 
 # https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#14-installing-kubeadm-on-your-hosts
 - name: prepare kube-router installation (enable bridge-nf-call-iptables)
