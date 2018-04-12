@@ -8,17 +8,44 @@
     repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
     state: present
 
+
+- name: Install Docker APT repo GPG key
+  apt_key:
+    id: F76221572C52609D
+    keyserver: keyserver.ubuntu.com
+    state: present
+
+- name: Setup Docker APT repo
+  apt_repository:
+    repo: deb http://apt.dockerproject.org/repo ubuntu-xenial main
+    state: present
+
+
+
 - name: Install docker and kubernetes packages
   apt:
     name: "{{item}}"
     state: installed
     update_cache: yes
   with_items:
-    - docker.io
+    - docker-engine
     - kubelet
     - kubeadm
     - kubectl
     - kubernetes-cni
+
+- name: Configure docker to use journald
+  copy:
+    content: |
+      {
+        "log-driver": "journald"
+      }
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart docker
 
 - name: add hosts
   lineinfile:
