@@ -1,10 +1,12 @@
 k8s-on-openstack
 ================
 
-This is a modified version of [infraly/k8s-on-openstack](https://github.com/infraly/k8s-on-openstack). In contrast to the previous playblook, this modified version 
+This is a modified version of [infraly/k8s-on-openstack](https://github.com/infraly/k8s-on-openstack). In contrast to the previous playbook, this modified version 
 
 - does **NOT** use a Kubernetes' OpenStack cloud provider but
 - does deploy Kubernetes on an OpenStack cluster using Ansible and with kube-router.
+
+The rationale behind this decision is that in some OpenStack deployments, the virtual machines are - for security reasons - not allowed to connect to OpenStack.
 
 It is based on the following tools:
 
