@@ -28,7 +28,8 @@
     state: installed
     update_cache: yes
   with_items:
-    - docker-engine
+    # Check wheter a new version is supported soon
+    - docker-engine=17.03.0~ce-0~ubuntu-xenial
     - kubelet
     - kubeadm
     - kubectl
