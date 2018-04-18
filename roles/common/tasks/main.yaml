@@ -2,7 +2,6 @@
   raw: while ! test -f /var/lib/cloud/instance/boot-finished; do sleep 1; done
   tags:
     - skip_ansible_lint
-  gather_facts: False
 
 - name: Setup
   action: setup
