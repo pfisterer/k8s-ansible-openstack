@@ -1,2 +1,24 @@
+# Install the dashboard
+
 - name: kubectl apply dashboard
   command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+
+# Create user: https://github.com/kubernetes/dashboard/wiki/Creating-sample-user
+
+- name: copy yaml files
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: "/home/ubuntu/manifests/"
+
+- name: kubectl - create admin-user
+  command: kubectl apply -f /home/ubuntu/manifests/admin-user.yaml
+
+- name: kubectl - create admin-user
+  command: kubectl apply -f /home/ubuntu/manifests/cluster-role-binding.yaml
+
+- name: kubectl - get admin user token
+  raw: kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}') | grep 'token:' | awk '{ print $2 }'
+  register: admin_user_token
+
+
+
