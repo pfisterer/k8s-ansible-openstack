@@ -1,0 +1,18 @@
+# ----------------------------------
+# Remove kube-proxy 
+# ----------------------------------
+
+- name: Test whether kube-proxy is installed
+  shell: "/usr/bin/test $(kubectl -n kube-system get ds --ignore-not-found=true -l k8s-app=kube-proxy  -o=jsonpath='{.items[0].metadata.name}') == 'kube-proxy'"
+  register: kubeproxy_test
+
+- name: Uninstall kube-proxy
+  become: True
+  command: kubectl -n kube-system delete ds kube-proxy
+  environment:
+    KUBECONFIG: '/etc/kubernetes/admin.conf'
+  when: kubeproxy_test|succeeded
+
+- name: Clear (potentially existing) iptables rules from kube-proxy
+  become: True
+  command: docker run --privileged --net=host gcr.io/google_containers/kube-proxy-amd64:v1.10.0 kube-proxy --cleanup-iptables

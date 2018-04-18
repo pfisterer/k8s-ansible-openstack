@@ -1,0 +1,13 @@
+# ----------------------------------
+# Install kube-router
+# ----------------------------------
+
+- name: prepare kube-router installation (enable bridge-nf-call-iptables, cf. https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#14-installing-kubeadm-on-your-hosts)
+  become: True
+  command: sysctl net.bridge.bridge-nf-call-iptables=1
+
+- name: install kube-router (cf. https://github.com/cloudnativelabs/kube-router/blob/master/docs/kubeadm.md)
+  become: True
+  command: kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter-all-features.yaml
+  environment:
+      KUBECONFIG: '/etc/kubernetes/admin.conf'

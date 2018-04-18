@@ -35,13 +35,6 @@
     - openstack-security-groups
     - openstack-master
 
-
-- name: Launch k8s nodes
-  hosts: localhost
-  roles:
-    - openstack-nodes
-
-
 - name: Master preparation
   hosts: master
   pre_tasks:
@@ -53,7 +46,13 @@
     - bootstrap
   gather_facts: false
   roles:
+    # We must wait for the master to have completed cloud-init since it is used as the bastion host for ssh tunnels
     - common
+   
+- name: Launch k8s nodes
+  hosts: localhost
+  roles:
+    - openstack-nodes
 
 - name: Nodes preparation
   hosts: nodes
@@ -82,6 +81,12 @@
   become: true
   roles:
     - kubeadm-master
+
+- name: Install kube-router instead of kube-proxy
+  hosts: master
+  roles:
+    - remove-kube-proxy
+    - kube-router
 
 - name: k8s nodes setup
   hosts: nodes

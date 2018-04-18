@@ -1,3 +1,7 @@
+# ----------------------------------
+# Initialise the master using kubeadm
+# ----------------------------------
+
 - name: Check for existing kubelet configuration
   stat:
     path: /etc/kubernetes/kubelet.conf
@@ -19,9 +23,13 @@
     token: "{{ token1 if kubelet_conf.stat.exists == False else token2 }}"
 
 - name: kubeadm init
-  command: "kubeadm init --ignore-preflight-errors=cri --token {{ token.stdout }} --kubernetes-version v1.10.0 --apiserver-advertise-address {{ hostvars[groups.master[0]].ansible_ssh_host }} --pod-network-cidr=10.244.0.0/16"
+  command: "kubeadm init --ignore-preflight-errors=cri --token {{ token.stdout }} --kubernetes-version v1.10.0 --apiserver-advertise-address {{ hostvars[groups.master[0]].ansible_ssh_host }} --pod-network-cidr=10.1.0.0/16"
   args:
     creates: /etc/kubernetes/kubelet.conf
+
+# ----------------------------------
+# Prepare the shell
+# ----------------------------------
 
 - name: Ensure kubectl configuration directory is present
   become: True
@@ -57,14 +65,3 @@
   raw: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
   register: master_node_ca_hash
 
-# https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#14-installing-kubeadm-on-your-hosts
-- name: prepare kube-router installation (enable bridge-nf-call-iptables)
-  become: True
-  command: sysctl net.bridge.bridge-nf-call-iptables=1
-
-# Kuberouter installation: https://github.com/cloudnativelabs/kube-router/blob/master/Documentation/kubeadm.md
-- name: install kube-router
-  become: True
-  command: kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter.yaml
-  environment:
-      KUBECONFIG: '/etc/kubernetes/admin.conf'
