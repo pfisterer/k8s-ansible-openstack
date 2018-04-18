@@ -36,3 +36,7 @@
 - name: Display cluster info
   debug:
     var: clusterinfo.stdout_lines
+
+- name: Write admin-user token to file
+  local_action: 
+    module: copy content="{{ hostvars[groups.master[0]]['admin_user_token']['stdout_lines'][0] }}" dest={{ playbook_dir }}/admin_user.token
