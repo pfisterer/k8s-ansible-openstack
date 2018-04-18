@@ -14,6 +14,8 @@
     auto_ip: false
     userdata: |
       #cloud-config
+      apt:
+        {{ lookup('env', 'CLOUD_INIT_APT_EXTRA_CONFIG') | default('', true) }} # e.g. http_proxy: http://[[user][:pass]@]host[:port]/
       package_upgrade: true
       hostname: "{{ name }}-{{ item }}"
       manage_etc_hosts: false
