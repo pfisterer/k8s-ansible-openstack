@@ -12,11 +12,12 @@ It is based on the following tools:
 
 - [kubeadm](https://github.com/kubernetes/kubeadm)
 - [Ansible](https://github.com/ansible/ansible)
-- [kube-router](https://github.com/cloudnativelabs/kube-router)
+- not working currently: [kube-router](https://github.com/cloudnativelabs/kube-router), uses [Flannel](https://github.com/coreos/flannel) instead
 
 Todos
 -------------
 
+- Use kube-router again
 - Storage allocation for PVCs, etc.
 - Verify that networking and direct server return works
 - Reverse ingress proxy
@@ -67,6 +68,24 @@ Generated files:
 
 - `admin.conf`: File for configuring kubectl to access the generated k8s cluster. Use `kubectl --kubeconfig=admin.conf` or `export KUBECONFIG=./admin.conf` to use this config file.
 - `admin_user.token`: Contains the token to (amongst others) log into the kubernetes dashboard <http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/namespace/kube-system?namespace=default> (after running `kubectl --kubeconfig=admin.conf proxy`)
+
+Verify its working:
+
+```
+kubectl run source-ip-app --image=k8s.gcr.io/echoserver:1.4
+
+# Cluster IP
+kubectl expose deployment source-ip-app --name=clusterip --port=80 --target-port=8080
+kubectl get svc clusterip
+kubectl run busybox -it --image=busybox --restart=Never --rm
+wget -qO - <put the cluster ip here>
+
+# Node Port
+kubectl expose deployment source-ip-app --name=nodeport --port=80 --target-port=8080 --type=NodePort
+NODEPORT=$(kubectl get -o jsonpath="{.spec.ports[0].nodePort}" services nodeport)
+curl http://<external public ip of the master node>:$NODEPORT
+```
+
 
 Authors
 ------

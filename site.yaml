@@ -82,11 +82,11 @@
   roles:
     - kubeadm-master
 
-- name: Install kube-router instead of kube-proxy
+- name: Install kube networking
   hosts: master
   roles:
-    - remove-kube-proxy
-    - kube-router
+#    - remove-kube-proxy
+    - k8s-networking
 
 - name: k8s nodes setup
   hosts: nodes

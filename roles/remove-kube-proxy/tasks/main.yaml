@@ -3,7 +3,8 @@
 # ----------------------------------
 
 - name: Test whether kube-proxy is installed
-  shell: "/usr/bin/test $(kubectl -n kube-system get ds --ignore-not-found=true -l k8s-app=kube-proxy  -o=jsonpath='{.items[0].metadata.name}') == 'kube-proxy'"
+  shell: "/usr/bin/test prefix-$(kubectl -n kube-system get ds --ignore-not-found=true -l k8s-app=kube-proxy  -o=jsonpath='{.items[0].metadata.name}') == 'prefix-kube-proxy'"
+  ignore_errors: yes
   register: kubeproxy_test
 
 - name: Uninstall kube-proxy
